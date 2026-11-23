@@ -1,0 +1,14 @@
+
+{
+  "manifest_version": 3,
+  "name": "PhishGuard",
+  "version": "2.0.0",
+  "description": "A browser extension that detects potential phishing websites.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

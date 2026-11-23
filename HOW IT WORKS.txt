@@ -1,0 +1,412 @@
+PHISHGUARD – FILE BREAKDOWN AND EXPLANATION
+
+PROJECT OVERVIEW
+
+PhishGuard is a Chrome extension designed to identify potential phishing websites by analyzing website URLs and webpage content.
+
+The extension uses five main files:
+
+1. manifest.json
+2. popup.html
+3. popup.css
+4. popup.js
+5. analyzer.js
+
+Each file has a specific responsibility, and they all work together to analyze websites and display the results to the user.
+
+
+==================================================
+1. manifest.json – THE CONFIGURATION FILE
+==================================================
+
+PURPOSE:
+
+The manifest.json file tells Google Chrome what PhishGuard is, how it should operate, and what permissions it needs.
+
+It is essentially the instruction manual Chrome reads when loading the extension.
+
+IMPORTANT COMPONENTS:
+
+- manifest_version: Specifies which version of Chrome's extension platform is being used. PhishGuard uses Manifest V3.
+- name: Sets the extension's name to PhishGuard.
+- version: Identifies the current version of the extension.
+- description: Provides a short explanation of what the extension does.
+- permissions: Specifies which Chrome capabilities the extension needs.
+- action: Tells Chrome which HTML file to open when the extension icon is clicked.
+
+PERMISSIONS:
+
+PhishGuard currently uses two permissions:
+
+1. activeTab
+   Allows PhishGuard to access information about the currently active browser tab after the user activates the extension.
+
+2. scripting
+   Allows PhishGuard to execute its webpage analysis function inside the active tab.
+
+WHY IT MATTERS:
+
+Without the manifest.json file, Chrome would not know how to load or configure PhishGuard.
+
+Think of it as the configuration and instruction manual for the extension.
+
+
+==================================================
+2. popup.html – THE STRUCTURE
+==================================================
+
+PURPOSE:
+
+The popup.html file creates the interface that appears when the user clicks the PhishGuard extension icon.
+
+HTML controls the structure and content of the popup.
+
+IMPORTANT COMPONENTS:
+
+- Heading: Displays the PhishGuard name.
+- Status: Displays the website's risk level.
+- Risk Score: Displays the numerical risk score out of 100.
+- Warnings: Displays potential phishing indicators discovered during analysis.
+- External Links: Creates a dropdown containing domains linked from the current webpage.
+
+EXAMPLE:
+
+<h1>PhishGuard</h1>
+
+<div id="status">Checking website...</div>
+
+This creates the heading and status area.
+
+Another example:
+
+<ul id="warnings"></ul>
+
+This creates an empty list where JavaScript can insert warnings.
+
+The external links section creates the dropdown that displays domains found on the webpage.
+
+SCRIPT CONNECTIONS:
+
+At the bottom of popup.html, two JavaScript files are loaded:
+
+<script src="analyzer.js"></script>
+<script src="popup.js"></script>
+
+The first loads the detection functions. The second runs the popup logic and displays the analysis results.
+
+WHY IT MATTERS:
+
+HTML creates the structure of the extension's interface.
+
+Think of it as the skeleton of PhishGuard.
+
+
+==================================================
+3. popup.css – THE APPEARANCE
+==================================================
+
+PURPOSE:
+
+The popup.css file controls how the PhishGuard interface looks.
+
+CSS is responsible for styling the HTML elements.
+
+IMPORTANT COMPONENTS:
+
+- Body: Controls the popup's width, spacing, background, and font.
+- Headings: Controls the appearance of the PhishGuard title and section headings.
+- Status: Styles the risk-level display.
+- Warnings: Controls the appearance and spacing of warning messages.
+- External Links: Styles the dropdown button and its contents.
+
+EXAMPLE:
+
+body {
+    width: 320px;
+    padding: 15px;
+    font-family: Arial, sans-serif;
+}
+
+This controls the popup's width, spacing, and font.
+
+DROPDOWN FUNCTIONALITY:
+
+The external links dropdown is initially hidden using:
+
+#externalLinksList {
+    display: none;
+}
+
+When the user clicks the dropdown button, JavaScript adds a CSS class called "show".
+
+The following CSS makes the dropdown visible:
+
+#externalLinksList.show {
+    display: block;
+}
+
+WHY IT MATTERS:
+
+CSS makes the extension easier to read and use.
+
+Think of it as the design and appearance of PhishGuard.
+
+
+==================================================
+4. analyzer.js – THE DETECTION SYSTEM
+==================================================
+
+PURPOSE:
+
+The analyzer.js file contains the main detection logic for PhishGuard.
+
+It examines website URLs and webpage content for characteristics commonly associated with phishing attempts.
+
+It currently contains two main functions.
+
+FUNCTION 1: analyzeURL(url)
+
+This function analyzes the website's URL.
+
+It checks for several potential phishing indicators:
+
+1. HTTPS:
+   Checks whether the website uses HTTPS.
+
+2. IP Addresses:
+   Checks whether the website uses an IP address instead of a normal domain name.
+
+3. @ Symbols:
+   Checks whether the URL contains an @ symbol.
+
+4. URL Length:
+   Checks whether the URL is unusually long.
+
+5. Subdomains:
+   Checks whether the website has an unusually large number of subdomains.
+
+6. Suspicious Keywords:
+   Checks whether the domain contains words commonly associated with phishing, such as login, verify, secure, account, update, password, and confirm.
+
+HOW IT WORKS:
+
+When a suspicious characteristic is detected, the function adds points to the risk score and records a warning.
+
+For example:
+
+if (parsedURL.protocol !== "https:") {
+    score += 20;
+    warnings.push("Website is not using HTTPS");
+}
+
+This checks whether the website uses HTTPS.
+
+If it does not, PhishGuard adds 20 points to the risk score and adds a warning to the results.
+
+FUNCTION 2: analyzePage()
+
+This function examines the actual webpage rather than just its URL.
+
+It checks for:
+
+1. Password Fields:
+   Searches the webpage for password input fields.
+
+2. Forms:
+   Checks whether the webpage contains HTML forms.
+
+3. Suspicious Phrases:
+   Searches the visible webpage text for phrases such as:
+   - Verify your account
+   - Account suspended
+   - Account locked
+   - Confirm your identity
+   - Verify your identity
+   - Password expired
+   - Security alert
+   - Unusual activity
+   - Immediately
+   - Urgent
+
+4. External Links:
+   Finds links that point to domains other than the current website's domain.
+
+EXAMPLE:
+
+const passwordFields =
+    document.querySelectorAll('input[type="password"]');
+
+This searches the webpage for password input fields.
+
+If any are found, PhishGuard adds 15 points to the risk score and records a warning.
+
+EXTERNAL LINKS:
+
+The function also collects unique external domain names.
+
+These domains are returned to popup.js so they can be displayed in the expandable External Links dropdown.
+
+WHY IT MATTERS:
+
+analyzer.js contains the core detection logic.
+
+Think of it as the brain of PhishGuard.
+
+IMPORTANT LIMITATION:
+
+These checks are heuristic indicators. A password field, form, or suspicious keyword does not automatically mean a website is malicious.
+
+The current version identifies potential warning signs. It does not independently verify whether a website is actually a phishing website.
+
+
+==================================================
+5. popup.js – THE COORDINATOR
+==================================================
+
+PURPOSE:
+
+The popup.js file connects the detection system to the popup interface.
+
+It runs the analysis, combines the results, and updates what the user sees.
+
+HOW IT WORKS:
+
+STEP 1: GET THE ACTIVE TAB
+
+PhishGuard uses Chrome's tabs API to identify the browser tab currently being viewed.
+
+STEP 2: ANALYZE THE URL
+
+It sends the active tab's URL to the analyzeURL() function in analyzer.js.
+
+This checks the website address for potential phishing indicators.
+
+STEP 3: ANALYZE THE WEBPAGE
+
+PhishGuard uses Chrome's scripting API to execute analyzePage() inside the active webpage.
+
+This allows it to examine webpage content, including forms, password fields, suspicious phrases, and external links.
+
+STEP 4: COMBINE THE RESULTS
+
+The URL analysis and webpage analysis each return a risk score.
+
+popup.js combines the two scores.
+
+Example:
+
+let totalScore = urlResult.score + pageResult.score;
+
+if (totalScore > 100) {
+    totalScore = 100;
+}
+
+This combines the scores and prevents the total from exceeding 100.
+
+STEP 5: DETERMINE THE RISK LEVEL
+
+PhishGuard uses the combined score to determine the displayed risk level.
+
+- 0–29: Low Risk
+- 30–59: Suspicious
+- 60–100: High Risk
+
+STEP 6: DISPLAY WARNINGS
+
+popup.js collects warnings from both analysis functions and displays them in the popup.
+
+If no warning indicators are found, it displays:
+
+"No obvious phishing indicators found."
+
+STEP 7: DISPLAY EXTERNAL LINKS
+
+Finally, popup.js takes the external domains collected by analyzePage() and displays them in the expandable External Links dropdown.
+
+The user can click the dropdown to see which external domains are linked from the current webpage.
+
+WHY IT MATTERS:
+
+popup.js connects all the other components and makes sure the results of the analysis are displayed correctly.
+
+Think of it as the coordinator of PhishGuard.
+
+
+==================================================
+HOW ALL FIVE FILES WORK TOGETHER
+==================================================
+
+When someone clicks the PhishGuard extension icon, the following process occurs:
+
+1. Chrome uses manifest.json to understand how the extension is configured.
+
+2. Chrome opens popup.html to display the extension interface.
+
+3. popup.css controls the appearance of the popup.
+
+4. popup.js starts running and identifies the currently active browser tab.
+
+5. popup.js calls analyzeURL() to examine the website's address.
+
+6. popup.js uses Chrome's scripting API to run analyzePage() inside the webpage.
+
+7. analyzer.js checks the URL and webpage for potential phishing indicators.
+
+8. Both analysis results are returned to popup.js.
+
+9. popup.js combines the risk scores and warnings.
+
+10. The popup displays the risk level, numerical score, warnings, and external links.
+
+
+==================================================
+QUICK REFERENCE TABLE
+==================================================
+
+FILE: manifest.json
+RESPONSIBILITY: Configures the extension and its permissions.
+
+FILE: popup.html
+RESPONSIBILITY: Creates the popup's structure and content.
+
+FILE: popup.css
+RESPONSIBILITY: Controls the popup's appearance and styling.
+
+FILE: analyzer.js
+RESPONSIBILITY: Examines URLs and webpage content for potential phishing indicators.
+
+FILE: popup.js
+RESPONSIBILITY: Coordinates the analysis and displays the results.
+
+
+==================================================
+WHAT I SHOULD UNDERSTAND FOR MY CYBERSECURITY PORTFOLIO
+==================================================
+
+The two most important files to understand are analyzer.js and popup.js.
+
+analyzer.js demonstrates my understanding of:
+
+- JavaScript functions
+- URL parsing
+- HTML document inspection
+- DOM manipulation
+- Identifying potential phishing indicators
+- Basic risk scoring
+
+popup.js demonstrates my understanding of:
+
+- Chrome Extension APIs
+- Active browser tab identification
+- Script execution
+- Combining analysis results
+- Updating HTML elements with JavaScript
+- Handling errors
+
+Together, these files demonstrate how a browser extension can use JavaScript and Chrome APIs to perform basic defensive security analysis.
+
+PROJECT GOAL:
+
+The goal of PhishGuard is to help users recognize potential phishing websites by identifying suspicious characteristics before they interact with potentially dangerous webpages.
+
+PhishGuard is an educational cybersecurity project and its current risk score should not be treated as proof that a website is safe or malicious.
